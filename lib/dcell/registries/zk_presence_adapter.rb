@@ -16,7 +16,7 @@ module DCell
 				include Celluloid
 				include Celluloid::Notifications
 				
-				def initialize()
+				def initialize(options)
 					@mutex = Mutex.new
 					@current_address = nil
 					
@@ -82,10 +82,12 @@ module DCell
 							end
 						end
 					end
+
+					@nodes = new_list
 				end
 				
 				def presence
-					Actor[@service_name]
+					::Celluloid::Actor[@service_name]
 				end
 			end
 			

@@ -28,7 +28,7 @@ module Celluloid
 					@node_address = proc { ip_address(use_ip_v4) }
 				else
 					node_address = options[:node_address]
-					@node_address = proc { node_address.is_a? Proc ? node_address.call : node_address }
+					@node_address = proc { node_address.is_a?(Proc) ? node_address.call : node_address }
 				end
 				@last_known_address = nil
 		
