@@ -1,0 +1,51 @@
+h1. Celluloid Presence
+
+Start an instance of "ZooKeeper":http://zookeeper.apache.org/ on your server then run:
+* OSX: 
+* 
+
+<pre><code class="ruby">
+require 'rubygems'
+require 'celluloid-presence'
+
+Celluloid::Presence::ZkService.init :server => 'localhost'
+Celluloid::Presence::ZkPresence.supervise_as :presence, :service_name => :presence
+
+class Messaging
+	include Celluloid
+	include Celluloid::Notifications
+	
+	def self.finalizer
+		:finalize
+	end
+	
+	def initialize(service_name)
+		@service_name = service_name
+		subscribe("#{@service_name}_nodes", :node_update)
+	end
+	
+	def node_update(event, nodes)
+		p "\nNode list updated!"
+		nodes.each do |node|
+			p " -> #{Actor[@service_name].get(node)}"
+		end
+	end
+	
+	
+	private
+	
+	
+	def finalize
+		Actor[@service_name].terminate
+	end
+end
+
+Messaging.run(:presence)
+</code></pre>
+
+
+h2. Start using it now
+
+# Read the "Documentation":http://rubydoc.info/gems/celluloid-promise/Celluloid/Presence
+# Then @gem install celluloid-presence@
+
