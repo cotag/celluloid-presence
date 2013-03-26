@@ -1,8 +1,6 @@
 h1. Celluloid Presence
 
-Start an instance of "ZooKeeper":http://zookeeper.apache.org/ on your server then run:
-* OSX: 
-* 
+Start an instance of "ZooKeeper":http://zookeeper.apache.org/ on your dev machine then run:
 
 <pre><code class="ruby">
 require 'rubygems'
@@ -46,6 +44,6 @@ Messaging.run(:presence)
 
 h2. Start using it now
 
-# Read the "Documentation":http://rubydoc.info/gems/celluloid-promise/Celluloid/Presence
+# Read the "Documentation":http://rubydoc.info/gems/celluloid-presence/Celluloid/Presence
 # Then @gem install celluloid-presence@
 
