@@ -19,11 +19,18 @@ module Celluloid
 				@env = options[:env] || 'production'
 				@base_path = options[:service_name].nil? ? "#{PREFIX}/#{@env}/default" : "#{PREFIX}/#{@env}/#{options[:service_name]}"
 				@base_path_sym = @base_path.to_sym
+				@node_path = nil	# This is officially set in connect_setup
 				@service_name = options[:service_name] || :default
 				@nodes = []
 		
-				@use_ip_v4 = !options[:ip_v6]		# IP v6 or IP v4
-				@last_known_ip = nil
+				if options[:node_address].nil?
+					use_ip_v4 = !options[:ip_v6]		# IP v6 or IP v4 if using the default node data
+					@node_address = proc { ip_address(use_ip_v4) }
+				else
+					node_address = options[:node_address]
+					@node_address = proc { node_address.is_a? Proc ? node_address.call : node_address }
+				end
+				@last_known_address = nil
 		
 				#
 				# These callbacks will be executed on a seperate thread
@@ -34,7 +41,7 @@ module Celluloid
 				subscribe('zk_connected', :on_connected)
 				subscribe('zk_connecting', :on_connecting)
 				
-				on_connected nil if zk.connected?
+				on_connected if zk.connected?
 			end
 			
 			
@@ -54,7 +61,7 @@ module Celluloid
 						@nodes = zk.children(@base_path, :watch => true)    # re-set watch
 						update_node_information
 					rescue ZK::Exceptions::NoNode		# Technically this shouldn't happen unless someone deleted our base path
-						on_connected nil if zk.connected?
+						on_connected if zk.connected?
 					end
 				end
 			end
@@ -62,16 +69,16 @@ module Celluloid
 			#
 			# This informs us of a new connection being established with zookeeper
 			#
-			def on_connected event
-				ip_address = ip_address(@use_ip_v4)
+			def on_connected(event = nil)
+				address = @node_address.call
 				if @node_path.nil? or not zk.exists?(@node_path)	# Create presence node as it doesn't exist
 					#p 'node re-created'
-					@last_known_ip = ip_address
+					@last_known_address = address
 					connect_setup
-				elsif @last_known_ip != ip_address		# Recreate existing presence node as our IP changed
+				elsif @last_known_address != address		# Recreate existing presence node as our IP changed
 					#p 'node ip_changed, recreating'
 					zk.async.ensure(:delete, @node_path)
-					@last_known_ip = ip_address
+					@last_known_address = address
 					connect_setup
 				else												# Else our node presence information is accurate, lets get the latest list
 					@nodes = zk.children(@base_path, :watch => true)
@@ -119,7 +126,7 @@ module Celluloid
 			#
 			def connect_setup
 				zk.mkdir_p @base_path
-				@node_path = zk.create "#{@base_path}/#{NODE_PREFIX}", @last_known_ip, :sequence => true, :ephemeral => true
+				@node_path = zk.create "#{@base_path}/#{NODE_PREFIX}", @last_known_address, :sequence => true, :ephemeral => true
 				@nodes = zk.children @base_path, :watch => true
 			end
 		

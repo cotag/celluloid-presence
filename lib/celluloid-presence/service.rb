@@ -135,7 +135,7 @@ module Celluloid
 			#	http://blog.jayfields.com/2007/10/ruby-defining-class-methods.html
 			#	http://blog.jayfields.com/2008/02/ruby-dynamically-define-method.html
 			#
-			SAFE_OPS ||= [:get, :children, :create, :mkdir_p, :delete, :stat, :exists?]
+			SAFE_OPS ||= [:get, :children, :create, :mkdir_p, :delete, :stat, :exists?, :set, :rm_rf]
 			SAFE_OPS.each do |func|
 				define_method func do |*args|
 					begin
