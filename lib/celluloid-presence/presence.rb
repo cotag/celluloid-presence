@@ -41,7 +41,7 @@ module Celluloid
 				subscribe('zk_connected', :on_connected)
 				subscribe('zk_connecting', :on_connecting)
 				
-				on_connected if zk.connected?
+				on_connected
 			end
 			
 			
@@ -61,7 +61,7 @@ module Celluloid
 						@nodes = zk.children(@base_path, :watch => true)    # re-set watch
 						update_node_information
 					rescue ZK::Exceptions::NoNode		# Technically this shouldn't happen unless someone deleted our base path
-						on_connected if zk.connected?
+						on_connected
 					end
 				end
 			end
@@ -70,6 +70,8 @@ module Celluloid
 			# This informs us of a new connection being established with zookeeper
 			#
 			def on_connected(event = nil)
+				return unless zk.connected?
+				
 				address = @node_address.call
 				if @node_path.nil? or not zk.exists?(@node_path)	# Create presence node as it doesn't exist
 					#p 'node re-created'

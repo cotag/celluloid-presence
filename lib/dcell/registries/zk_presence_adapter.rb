@@ -60,6 +60,8 @@ module DCell
 				
 				
 				def update_directory(new_list)
+					new_list ||= []
+					
 					unsubscribe = @nodes - new_list		# TODO:: use sets here instead of arrays for speed
 					subscribe = new_list - @nodes
 					
